@@ -20,7 +20,7 @@ http://www.mulesoft.org/schema/mule/ftp http://www.mulesoft.org/schema/mule/ftp/
 	<db:config name="Database_Config1" doc:name="Database Config" doc:id="c73260d8-64f6-4c2b-a0db-56c6724b5a06" >
 		<db:my-sql-connection host="localhost" port="3306" user="root" password="root" database="mule" />
 	</db:config>
-	<flow name="salesforcFlow" doc:id="e694d220-c373-4003-ae8c-312763ba186f" >
+	<flow name="salesFlow" doc:id="e694d220-c373-4003-ae8c-312763ba186f" >
 		<http:listener doc:name="Listener" doc:id="d3cb04eb-ec07-4583-b400-88c0d765f094" config-ref="HTTP_Listener_config" path="sf"/>
 		<salesforce:query doc:name="Query" doc:id="df5ccf51-b663-45a1-a0ab-92dee37d9076" config-ref="Salesforce_Config">
 			<salesforce:salesforce-query >
