@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ftp="http://www.mulesoft.org/schema/mule/ftp" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ftp http://www.mulesoft.org/schema/mule/ftp/current/mule-ftp.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="0122eb02-d32c-47fc-9891-90a8bc173e94" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<salesforce:sfdc-config name="Salesforce_Config" doc:name="Salesforce Config" doc:id="b71be09c-edd8-44a6-8ee2-22ab8d4ac87b" >
+		<salesforce:cached-basic-connection username="ramaraju@charu.com" password="Charu2020" securityToken="oB05b1c4wRd4v15IbKzHpAJo" />
+	</salesforce:sfdc-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="380da024-8b30-4c4e-98c4-890b81e53bcf" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="root" database="mule" />
+	</db:config>
+	<db:config name="Database_Config1" doc:name="Database Config" doc:id="c73260d8-64f6-4c2b-a0db-56c6724b5a06" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="root" database="mule" />
+	</db:config>
+	<flow name="salesforcFlow" doc:id="e694d220-c373-4003-ae8c-312763ba186f" >
+		<http:listener doc:name="Listener" doc:id="d3cb04eb-ec07-4583-b400-88c0d765f094" config-ref="HTTP_Listener_config" path="sf"/>
+		<salesforce:query doc:name="Query" doc:id="df5ccf51-b663-45a1-a0ab-92dee37d9076" config-ref="Salesforce_Config">
+			<salesforce:salesforce-query >
+
+SELECT AccountNumber,BillingCity,Id FROM Account limit 5</salesforce:salesforce-query>
+		</salesforce:query>
+		<logger level="INFO" doc:name="Logger" doc:id="708d3824-f0b7-4dae-89fc-63496b25f6ae" message="=====salesforce=========#[payload]"/>
+		<ee:transform doc:name="Transform Message" doc:id="f99a049c-6d05-469d-ae35-e70f5ce6ddbb" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload map{
+	AccountNumber: $.AccountNumber ,
+      BillingCity: $.Billing,
+       Id: $.Id
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="28768696-3f91-4457-a355-3bc3acb18285" message="=========json===========#[payload]"/>
+		<foreach doc:name="For Each" doc:id="304d5880-4402-4301-a7de-bf8a282a75d4" >
+			<db:insert doc:name="Insert" doc:id="675742e0-d2e2-47ad-9c6a-6be0809d42b0" config-ref="Database_Config1">
+			<db:sql>
+INSERT INTO account1(AccountNumber,BillingCity,Id) VALUES (:AccountNumber,:BillingCity,:Id);</db:sql>
+			<db:input-parameters><![CDATA[#[{
+'AccountNumber': payload.AccountNumber,
+'BillingCity' : payload.BillingCity,
+'Id': payload.Id
+}]]]></db:input-parameters>
+		</db:insert>
+		</foreach>
+	</flow>
+</mule>
